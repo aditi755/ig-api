@@ -14,9 +14,11 @@ export default function ConnectInstagram() {
   const router = useRouter();
 
   useEffect(() => {
+    console.log('function runs')
     const queryParams = new URLSearchParams(window.location.search);
+    console.log(queryParams)
     const code = queryParams.get('code');
-
+    console.log(code)
     if (code) {
       // Automatically send the code to our server-side endpoint to exchange for an access token
       fetch(`/api/auth/instagram/callback?code=${code}`)
@@ -34,6 +36,8 @@ export default function ConnectInstagram() {
           console.error('Error fetching Instagram data:', error);
         });
     }
+
+    console.log('function ends')
   }, [router]);
 
   return (

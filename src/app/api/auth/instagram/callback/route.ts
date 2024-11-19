@@ -14,7 +14,10 @@ interface InstagramUserData {
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
   const url = new URL(req.url);
+  console.log("url", url)
   const code = url.searchParams.get('code');
+
+  console.log("code",code);
 
   if (!code) {
     return new NextResponse('Authorization code not found', { status: 400 });
@@ -30,10 +33,12 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       client_id: '564900196121353',
       client_secret: 'faad8ab62a7f87122cbbbe167b1d81e3',
       grant_type: 'authorization_code',
-      redirect_uri: 'http://localhost:3000/api/auth/instagram/callback',
+      redirect_uri: 'https://ig-api-indol.vercel.app/api/auth/instagram/callback',
       code,
     }),
   });
+
+  console.log('tokenResponse', tokenResponse.status)
 
   const tokenData: InstagramTokenData = await tokenResponse.json();
 
@@ -44,6 +49,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     );
   }
 
+  console.log('tokenDtata', tokenData)
   // Fetch user details using the access token
   const userResponse = await fetch(
     `https://graph.instagram.com/me?fields=id,username,account_type&access_token=${tokenData.access_token}`
