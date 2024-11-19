@@ -1,7 +1,7 @@
-
-// frontend code - app/ConnectInstagram.tsx
 'use client';
+
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 type UserData = {
   id: string;
@@ -11,33 +11,42 @@ type UserData = {
 
 export default function ConnectInstagram() {
   const [userData, setUserData] = useState<UserData | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
     const code = queryParams.get('code');
 
     if (code) {
+      // Automatically send the code to our server-side endpoint to exchange for an access token
       fetch(`/api/auth/instagram/callback?code=${code}`)
-        .then(response => response.json())
-        .then(data => {
-          setUserData(data);
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error('Failed to fetch Instagram user data');
+          }
+          return response.json();
         })
-        .catch(error => {
+        .then((data) => {
+          setUserData(data); // Display Instagram user data
+          router.replace('/'); // Optionally remove the code query parameter
+        })
+        .catch((error) => {
           console.error('Error fetching Instagram data:', error);
         });
     }
-  }, []);
+  }, [router]);
 
   return (
     <div>
-      <h1>Connect screen</h1>
+      <h1>Connect with Instagram</h1>
       {!userData ? (
         <a
-        href={`https://api.instagram.com/oauth/authorize?client_id=564900196121353&redirect_uri=http://localhost:3000/api/auth/instagram/callback&response_type=code&scope=user_profile,user_media`}
-      >
-        Connect with Instagram
-      </a>
-      
+          href={`https://api.instagram.com/oauth/authorize?client_id=564900196121353&redirect_uri=${encodeURIComponent(
+            'https://ig-api-indol.vercel.app/api/auth/instagram/callback'
+          )}&scope=instagram_business_basic,instagram_business_manage_insights,instagram_business_manage_comments,instagram_business_content_publish,instagram_business_manage_messages&response_type=code`}
+        >
+          Connect with Instagram
+        </a>
       ) : (
         <div>
           <h2>Instagram User Info</h2>
@@ -49,6 +58,3 @@ export default function ConnectInstagram() {
     </div>
   );
 }
-
-
-
