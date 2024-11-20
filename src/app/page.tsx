@@ -73,26 +73,25 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-type MediaData = {
-  id: string;
-  media_type: string;
-  media_url: string;
-  like_count: number;
-  comments_count: number;
-};
-
-type UserData = {
+interface InstagramUserData {
   id: string;
   username: string;
   account_type: string;
-  full_name: string;
-  profile_picture_url: string;
   media_count: number;
-  media?: MediaData[];
-};
+}
+
+interface InstagramMediaData {
+  id: string;
+  caption: string;
+  media_type: string;
+  media_url: string;
+  thumbnail_url?: string;
+  permalink: string;
+}
 
 export default function ConnectInstagram() {
-  const [userData, setUserData] = useState<UserData | null>(null);
+  const [userData, setUserData] = useState<InstagramUserData | null>(null);
+  const [mediaData, setMediaData] = useState<InstagramMediaData[] | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -103,12 +102,14 @@ export default function ConnectInstagram() {
       fetch(`/api/auth/instagram/callback?code=${code}`)
         .then((response) => {
           if (!response.ok) {
-            throw new Error('Failed to fetch Instagram user data');
+            throw new Error('Failed to fetch Instagram data');
           }
           return response.json();
         })
         .then((data) => {
-          setUserData({ ...data.userData, media: data.mediaData.data });
+          // Map user profile and media data to respective state
+          setUserData(data.userProfile);
+          setMediaData(data.userMedia);
           router.replace('/'); // Optionally remove the code query parameter
         })
         .catch((error) => {
@@ -131,20 +132,39 @@ export default function ConnectInstagram() {
       ) : (
         <div>
           <h2>Instagram User Info</h2>
-          <img src={userData.profile_picture_url} alt="Profile" width={100} />
-          <p>Full Name: {userData.full_name}</p>
+          <p>User ID: {userData.id}</p>
           <p>Username: {userData.username}</p>
           <p>Account Type: {userData.account_type}</p>
           <p>Total Posts: {userData.media_count}</p>
           <h3>Recent Media</h3>
-          {userData.media?.map((media) => (
-            <div key={media.id}>
-              <p>Media Type: {media.media_type}</p>
-              <img src={media.media_url} alt="Media" width={100} />
-              <p>Likes: {media.like_count}</p>
-              <p>Comments: {media.comments_count}</p>
-            </div>
-          ))}
+          {mediaData && mediaData.length > 0 ? (
+            mediaData.map((media) => (
+              <div key={media.id}>
+                <p>Caption: {media.caption || 'No caption available'}</p>
+                <p>Media Type: {media.media_type}</p>
+                <img
+                  src={media.media_url}
+                  alt={media.caption || 'Instagram Media'}
+                  width={100}
+                />
+                {media.thumbnail_url && (
+                  <img
+                    src={media.thumbnail_url}
+                    alt="Thumbnail"
+                    width={100}
+                  />
+                )}
+                <p>
+                  View on Instagram:{" "}
+                  <a href={media.permalink} target="_blank" rel="noopener noreferrer">
+                    Link
+                  </a>
+                </p>
+              </div>
+            ))
+          ) : (
+            <p>No media available.</p>
+          )}
         </div>
       )}
     </div>
