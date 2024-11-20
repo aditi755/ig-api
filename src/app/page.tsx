@@ -2,42 +2,52 @@
 
 // import { useEffect, useState } from 'react';
 // import { useRouter } from 'next/navigation';
-
-// type UserData = {
+// import Image from 'next/image'
+// interface InstagramUserData {
 //   id: string;
 //   username: string;
 //   account_type: string;
-// };
+//   media_count: number;
+// }
+
+// interface InstagramMediaData {
+//   id: string;
+//   caption: string;
+//   media_type: string;
+//   media_url: string;
+//   thumbnail_url?: string;
+//   permalink: string;
+// }
 
 // export default function ConnectInstagram() {
-//   const [userData, setUserData] = useState<UserData | null>(null);
+//   const [userData, setUserData] = useState<InstagramUserData | null>(null);
+//   const [mediaData, setMediaData] = useState<InstagramMediaData[] | null>(null);
 //   const router = useRouter();
 
 //   useEffect(() => {
-//     console.log('function runs')
 //     const queryParams = new URLSearchParams(window.location.search);
-//     console.log(queryParams)
 //     const code = queryParams.get('code');
-//     console.log(code)
+
 //     if (code) {
-//       // Automatically send the code to our server-side endpoint to exchange for an access token
 //       fetch(`/api/auth/instagram/callback?code=${code}`)
 //         .then((response) => {
 //           if (!response.ok) {
-//             throw new Error('Failed to fetch Instagram user data');
+//             throw new Error('Failed to fetch Instagram data');
 //           }
 //           return response.json();
 //         })
 //         .then((data) => {
-//           setUserData(data); // Display Instagram user data
+//           // Map user profile and media data to respective state
+//           setUserData(data.userProfile);
+//           setMediaData(data.userMedia);
+//           console.log('remove the code query paramtere')
 //           router.replace('/'); // Optionally remove the code query parameter
+//           console.log('done removing code ')
 //         })
 //         .catch((error) => {
 //           console.error('Error fetching Instagram data:', error);
 //         });
 //     }
-
-//     console.log('function ends')
 //   }, [router]);
 
 //   return (
@@ -54,9 +64,39 @@
 //       ) : (
 //         <div>
 //           <h2>Instagram User Info</h2>
-//           <p>ID: {userData.id}</p>
+//           <p>User ID: {userData.id}</p>
 //           <p>Username: {userData.username}</p>
 //           <p>Account Type: {userData.account_type}</p>
+//           <p>Total Posts: {userData.media_count}</p>
+//           <h3>Recent Media</h3>
+//           {mediaData && mediaData.length > 0 ? (
+//             mediaData.map((media) => (
+//               <div key={media.id}>
+//                 <p>Caption: {media.caption || 'No caption available'}</p>
+//                 <p>Media Type: {media.media_type}</p>
+//                 <Image
+//                   src={media.media_url}
+//                   alt={media.caption || 'Instagram Media'}
+//                   width={100}
+//                 />
+//                 {media.thumbnail_url && (
+//                   <Image
+//                     src={media.thumbnail_url}
+//                     alt="Thumbnail"
+//                     width={100}
+//                   />
+//                 )}
+//                 <p>
+//                   View on Instagram:{" "}
+//                   <a href={media.permalink} target="_blank" rel="noopener noreferrer">
+//                     Link
+//                   </a>
+//                 </p>
+//               </div>
+//             ))
+//           ) : (
+//             <p>No media available.</p>
+//           )}
 //         </div>
 //       )}
 //     </div>
@@ -65,33 +105,40 @@
 
 
 
-
-
-
 'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image'
-interface InstagramUserData {
+
+interface FacebookUserData {
   id: string;
-  username: string;
-  account_type: string;
-  media_count: number;
+  name: string;
+  username?: string;
+  followers_count?: number;
+  media_count?: number;
 }
 
-interface InstagramMediaData {
+interface FacebookMediaData {
   id: string;
-  caption: string;
+  caption?: string;
   media_type: string;
-  media_url: string;
+  media_url?: string;
   thumbnail_url?: string;
-  permalink: string;
+  permalink?: string;
+  like_count?: number;
+  comments_count?: number;
+  insights?: {
+    data: Array<{
+      name: string;
+      values: Array<{ value: number }>
+    }>
+  };
 }
 
 export default function ConnectInstagram() {
-  const [userData, setUserData] = useState<InstagramUserData | null>(null);
-  const [mediaData, setMediaData] = useState<InstagramMediaData[] | null>(null);
+  const [userData, setUserData] = useState<FacebookUserData | null>(null);
+  const [mediaData, setMediaData] = useState<FacebookMediaData[] | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -107,16 +154,22 @@ export default function ConnectInstagram() {
           return response.json();
         })
         .then((data) => {
-          // Map user profile and media data to respective state
           setUserData(data.userProfile);
           setMediaData(data.userMedia);
-          router.replace('/'); // Optionally remove the code query parameter
+          router.replace('/');
         })
         .catch((error) => {
           console.error('Error fetching Instagram data:', error);
         });
     }
   }, [router]);
+
+  const getInsightValue = (media: FacebookMediaData, metricName: string) => {
+    const insight = media.insights?.data.find(
+      (insight) => insight.name.toLowerCase() === metricName.toLowerCase()
+    );
+    return insight?.values[0]?.value || 'N/A';
+  };
 
   return (
     <div>
@@ -132,34 +185,48 @@ export default function ConnectInstagram() {
       ) : (
         <div>
           <h2>Instagram User Info</h2>
+          <p>Name: {userData.name}</p>
           <p>User ID: {userData.id}</p>
-          <p>Username: {userData.username}</p>
-          <p>Account Type: {userData.account_type}</p>
+          <p>Followers: {userData.followers_count}</p>
           <p>Total Posts: {userData.media_count}</p>
+          
           <h3>Recent Media</h3>
           {mediaData && mediaData.length > 0 ? (
             mediaData.map((media) => (
-              <div key={media.id}>
-                <p>Caption: {media.caption || 'No caption available'}</p>
-                <p>Media Type: {media.media_type}</p>
-                <Image
-                  src={media.media_url}
-                  alt={media.caption || 'Instagram Media'}
-                  width={100}
-                />
-                {media.thumbnail_url && (
+              <div key={media.id} className="mb-4 p-2 border">
+                {media.media_url && (
                   <Image
-                    src={media.thumbnail_url}
-                    alt="Thumbnail"
-                    width={100}
+                    src={media.media_url}
+                    alt={media.caption || 'Instagram Media'}
+                    width={200}
+                    height={200}
+                    className="mb-2"
                   />
                 )}
-                <p>
-                  View on Instagram:{" "}
-                  <a href={media.permalink} target="_blank" rel="noopener noreferrer">
-                    Link
+                
+                <p>Caption: {media.caption || 'No caption'}</p>
+                <p>Media Type: {media.media_type}</p>
+                
+                <div className="mt-2">
+                  <strong>Engagement Metrics:</strong>
+                  <p>Likes: {media.like_count || 0}</p>
+                  <p>Comments: {media.comments_count || 0}</p>
+                  <p>Impressions: {getInsightValue(media, 'impressions')}</p>
+                  <p>Reach: {getInsightValue(media, 'reach')}</p>
+                  <p>Video Views: {getInsightValue(media, 'video_views')}</p>
+                  <p>Shares: {getInsightValue(media, 'shares')}</p>
+                </div>
+                
+                {media.permalink && (
+                  <a 
+                    href={media.permalink} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-blue-500 underline"
+                  >
+                    View on Instagram
                   </a>
-                </p>
+                )}
               </div>
             ))
           ) : (
