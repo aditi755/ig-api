@@ -120,7 +120,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   }
 
   // Exchange the authorization code for an access token
-  const tokenResponse = await fetch('https://graph.facebook.com/v19.0/oauth/access_token', {
+  const tokenResponse = await fetch('https://api.instagram.com/oauth/access_token', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
