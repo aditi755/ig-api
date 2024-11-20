@@ -72,7 +72,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-
+import Image from 'next/image'
 interface InstagramUserData {
   id: string;
   username: string;
@@ -142,13 +142,13 @@ export default function ConnectInstagram() {
               <div key={media.id}>
                 <p>Caption: {media.caption || 'No caption available'}</p>
                 <p>Media Type: {media.media_type}</p>
-                <img
+                <Image
                   src={media.media_url}
                   alt={media.caption || 'Instagram Media'}
                   width={100}
                 />
                 {media.thumbnail_url && (
-                  <img
+                  <Image
                     src={media.thumbnail_url}
                     alt="Thumbnail"
                     width={100}
