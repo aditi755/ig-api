@@ -193,7 +193,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 const CLIENT_ID = '1068594868074995';
-const CLIENT_SECRET = 'faad8ab62a7f87122cbbbe167b1d81e3';
+const CLIENT_SECRET = '7aa94560586507e6c840da8105090984';
 const REDIRECT_URI = 'https://ig-api-indol.vercel.app/api/auth/instagram/callback';
 
 interface TokenResponseData {
